@@ -1,3 +1,5 @@
+import sys
+
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -5,11 +7,10 @@ from matplotlib.animation import FuncAnimation
 import pandas as pd
 from pathlib import Path
 
-def helperCluster(movement,hand):
+def helperCluster(movement,hand,base):
     tmp = []
     tmp1 = []
     tmp2 = []
-    base = Path("/home/stamylaptop/PycharmProjects/CropDataProject/data")
     if hand == None:
         full_path = base / movement
     else:
@@ -27,7 +28,7 @@ def helperCluster(movement,hand):
     return tmp, tmp1,tmp2
 
 
-def ClusteringResults():
+def ClusteringResults(base):
     alexandros = []
     vasilis = []
     stamatia = []
@@ -45,7 +46,7 @@ def ClusteringResults():
     ]
 
     for movement, hand in scenarios:
-        tmp, tmp1, tmp2 = helperCluster(movement, hand)
+        tmp, tmp1, tmp2 = helperCluster(movement, hand,base)
         alexandros.extend(tmp)
         vasilis.extend(tmp1)
         stamatia.extend(tmp2)
@@ -156,15 +157,15 @@ def plotUncropedData(df,name):
 
 
 def main():
-    #base = "/home/stamylaptop/PycharmProjects/CropDataProject/data"
-    #filenames = getFilenames(base)
-    #for name in filenames:
-        #df = readcsv(name)
-        #clean_name = name.stem.strip()
-        #plotUncropedData(df,clean_name)
+    base = sys.argv[1] #βαζετε απο τερματικο το path
+    filenames = getFilenames(base)
+    for name in filenames:
+        df = readcsv(name)
+        clean_name = name.stem.strip()
+        plotUncropedData(df,clean_name)
 
     #new version of main its for 6 axis
-    fileA, fileB, fileS = ClusteringResults()
+    fileA, fileB, fileS = ClusteringResults(base)
     for i in range(0,len(fileA)-1,2):
         df = readcsv(fileA[i])
         df2 = readcsv(fileA[i+1])
