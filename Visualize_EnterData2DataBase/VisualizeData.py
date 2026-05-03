@@ -1,5 +1,3 @@
-import sys
-
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -7,7 +5,10 @@ from matplotlib.animation import FuncAnimation
 import pandas as pd
 from pathlib import Path
 
+
+#methods to read file and cluster them
 def helperCluster(movement,hand,base):
+    base = Path(base)
     tmp = []
     tmp1 = []
     tmp2 = []
@@ -26,8 +27,6 @@ def helperCluster(movement,hand,base):
         else:
             tmp2.append(file)
     return tmp, tmp1,tmp2
-
-
 def ClusteringResults(base):
     alexandros = []
     vasilis = []
@@ -52,17 +51,14 @@ def ClusteringResults(base):
         stamatia.extend(tmp2)
 
     return alexandros, vasilis, stamatia
-
-
-def readcsv(filename):
-    df = pd.read_csv(filename)
-    return df
-
 def getFilenames(base):
     path = Path(base)
     filenames = list(path.rglob('*.csv'))
     return filenames
 
+#-------------------------------------------------------#
+
+#plot data in 6axis
 def update_6axis(frame, scat_a, df_a, scat_b, df_b):
     step = 100
     end = frame * step
@@ -77,10 +73,15 @@ def update_6axis(frame, scat_a, df_a, scat_b, df_b):
 
 
     return scat_a, scat_b
-
 def Plot_6axis(df_a, df_b, name):
     df_a.columns = df_a.columns.str.strip()
     df_b.columns = df_b.columns.str.strip()
+
+    for df in [df_a, df_b]:
+        for col in ['X', 'Y', 'Z']:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        # Προαιρετικά: αφαιρούμε γραμμές με κενά (NaN)
+        df.dropna(subset=['X', 'Y', 'Z'], inplace=True)
 
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
@@ -110,8 +111,22 @@ def Plot_6axis(df_a, df_b, name):
     plt.draw()
     plt.pause(5)
     plt.close(fig)
+def readcsv_plot6axis(filenames1):
+    for i in range(0, len(filenames1) - 1, 2):
+        df = pd.read_csv(filenames1[i])
+        df2 = pd.read_csv(filenames1[i+1])
+        clean_name = filenames1[i].stem.strip()
+        clean_name = clean_name + filenames1[i + 1].stem.strip()
+        print(f"Σχεδίαση ζευγαριού: {clean_name}")
+        Plot_6axis(df, df2, clean_name)
+def PlotAllCluster(filenames1,filenames2,filenames3):
+    readcsv_plot6axis(filenames1)
+    readcsv_plot6axis(filenames2)
+    readcsv_plot6axis(filenames3)
 
+#-------------------------------------------------------#
 
+#plot data in 3 axis
 def update_3axis(frame,scat,df):
     step=100
     end = frame * step
@@ -123,8 +138,7 @@ def update_3axis(frame,scat,df):
 
     scat.set_array(data['Epoch'])
     return scat
-
-def plotUncropedData(df,name):
+def Plot_3axis(df,name):
     df.columns = df.columns.str.strip()
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
@@ -153,46 +167,14 @@ def plotUncropedData(df,name):
     plt.draw()
     plt.pause(5)
     plt.close(fig)
-
-
-
-def main():
-    base = sys.argv[1] #βαζετε απο τερματικο το path
-    filenames = getFilenames(base)
+def readcsv_plot(filenames):
     for name in filenames:
-        df = readcsv(name)
+        df = pd.read_csv(name)
+        for col in ['X', 'Y', 'Z']:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        df = df.dropna(subset=['X', 'Y', 'Z'])
         clean_name = name.stem.strip()
-        plotUncropedData(df,clean_name)
+        Plot_3axis(df,clean_name)
 
-    #new version of main its for 6 axis
-    fileA, fileB, fileS = ClusteringResults(base)
-    for i in range(0,len(fileA)-1,2):
-        df = readcsv(fileA[i])
-        df2 = readcsv(fileA[i+1])
-        clean_name = fileA[i].stem.strip()
-        clean_name = clean_name + fileA[i+1].stem.strip()
-        print(f"Σχεδίαση ζευγαριού: {clean_name}")
-        Plot_6axis(df, df2, clean_name)
+#------------------------------------------------------#
 
-    for i in range(0,len(fileB)-1,2):
-        df = readcsv(fileB[i])
-        df2 = readcsv(fileB[i+1])
-        clean_name = fileB[i].stem.strip()
-        clean_name = clean_name + fileB[i+1].stem.strip()
-        print(f"Σχεδίαση ζευγαριού: {clean_name}")
-        Plot_6axis(df, df2, clean_name)
-
-    for i in range(0,len(fileS)-1,2):
-        df = readcsv(fileS[i])
-        df2 = readcsv(fileS[i+1])
-        clean_name = fileS[i].stem.strip()
-        clean_name = clean_name + fileS[i+1].stem.strip()
-        print(f"Σχεδίαση ζευγαριού: {clean_name}")
-        Plot_6axis(df, df2, clean_name)
-
-
-
-
-
-if __name__ == "__main__":
-    main()
