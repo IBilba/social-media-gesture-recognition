@@ -139,7 +139,8 @@ def session_label(meta: dict) -> str:
 
 def session_slug(meta: dict) -> str:
     """Builds a filesystem-safe slug for a session."""
-    return f"{meta['gesture_id']}_{meta['finger']}_{meta['typing_style']}_{meta['user']}"
+    return (f"{meta['gesture_id']}_{meta['finger']}_{meta['typing_style']}"
+            f"_h{meta['hand']}_p{meta['primary']}_sr{meta['sr']}_{meta['user']}")
 
 
 def _time_axis(df: pd.DataFrame, sr: int) -> pd.Series:

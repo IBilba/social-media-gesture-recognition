@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pymongo import ASCENDING, MongoClient
 from pymongo.collection import Collection
+from pymongo.errors import DuplicateKeyError
 
 VALID_BASES = {"scroll-up", "scroll-down", "swipe-left", "swipe-right", "texting"}
 VALID_USERS = {"a", "b", "s"}
@@ -388,7 +389,7 @@ def apply_continuous_filter(df: pd.DataFrame, order: int = 4,
     sos = scipy.signal.butter(order, wn, btype="lowpass", output="sos")
     out = df.copy()
     for col in SIX_AXES:
-        out[col] = scipy.signal.sosfiltfilt(sos, df[col].values)
+        out[col] = scipy.signal.sosfiltfilt(sos, df[col].values, padlen=0)
     return out
 
 
@@ -436,7 +437,7 @@ def insert_documents(coll: Collection, docs: Iterable) -> int:
         try:
             coll.insert_one(doc)
             inserted += 1
-        except Exception as exc:
+        except DuplicateKeyError as exc:
             tag = f"{doc.get('user')}/{doc.get('gesture_id')}/{doc.get('finger')}"
-            print(f"SKIP insert ({tag}): {exc}")
+            print(f"SKIP insert ({tag}): duplicate session_id ({exc})")
     return inserted
