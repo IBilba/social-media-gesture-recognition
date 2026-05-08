@@ -312,7 +312,7 @@ def session_key(meta: dict) -> tuple:
     return (meta["gesture_id"], meta["finger"], meta["typing_style"],
             meta["hand"], meta["primary"], meta["user"])
 
-
+# Απο εδω ξεκινα το διαβασμα του αρχειου
 def discover_csvs(data_root) -> list:
     """Returns every CSV under data_root, recursively, sorted."""
     return sorted(Path(data_root).rglob("*.csv"))
@@ -392,9 +392,10 @@ def apply_continuous_filter(df: pd.DataFrame, order: int = 4,
         out[col] = scipy.signal.sosfiltfilt(sos, df[col].values, padlen=0)
     return out
 
-
+#δεν δουλευει
 def load_session(acc_path, gyr_path) -> pd.DataFrame:
     """Loads, merges and lowpass-filters one acc/gyr pair into a 6-axis frame."""
+
     return apply_continuous_filter(
         merge_acc_gyr(load_acc_csv(acc_path), load_gyr_csv(gyr_path))
     )
@@ -441,3 +442,26 @@ def insert_documents(coll: Collection, docs: Iterable) -> int:
             tag = f"{doc.get('user')}/{doc.get('gesture_id')}/{doc.get('finger')}"
             print(f"SKIP insert ({tag}): duplicate session_id ({exc})")
     return inserted
+
+# Processing data
+def ProcessingData(pairs):
+    all_users_dicts = {}
+    for meta, acc_p, gyr_p in pairs:
+        df_acc = load_acc_csv(acc_p)
+        df_gyr = load_gyr_csv(gyr_p)
+        merged_df = merge_acc_gyr(df_acc, df_gyr)
+
+        user_map = {'a': 'Alex', 'b': 'Vasilis', 's': 'Stamy'}
+        user_name = user_map.get(meta['user'], meta['user'])
+
+        gesture = meta['gesture_id']
+        hand_label = meta['finger']
+
+        if user_name not in all_users_dicts:
+            all_users_dicts[user_name] = {}
+        if gesture not in all_users_dicts[user_name]:
+            all_users_dicts[user_name][gesture] = {}
+
+        all_users_dicts[user_name][gesture][hand_label] = merged_df
+
+    return all_users_dicts
